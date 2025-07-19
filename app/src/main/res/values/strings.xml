@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Call Editor</string>
+
+    <!--Edit call history screen-->
+    <string name="edit_call_history_title">Edit Call History</string>
+</resources>
