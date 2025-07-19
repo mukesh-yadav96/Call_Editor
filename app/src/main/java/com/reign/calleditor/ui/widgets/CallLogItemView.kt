@@ -45,7 +45,7 @@ fun CallLogItemView(log: CallLogEntry, modifier: Modifier = Modifier) {
             headlineContent = {
                 Text(
                     text = log.name ?: log.number ?: "Unknown",
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -55,7 +55,7 @@ fun CallLogItemView(log: CallLogEntry, modifier: Modifier = Modifier) {
                     if (log.name != null && log.number != null) {
                         Text(
                             text = "${log.number} • ",
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -63,7 +63,7 @@ fun CallLogItemView(log: CallLogEntry, modifier: Modifier = Modifier) {
                     }
                     Text(
                         text = formatDuration(log.duration),
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -80,12 +80,12 @@ fun CallLogItemView(log: CallLogEntry, modifier: Modifier = Modifier) {
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = callLogTypeToString(log.type),
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelMedium,
                         color = iconColor
                     )
                     Text(
                         text = dateFormat.format(Date(log.date)),
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
