@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">Call Editor</string>
 
+    <!--All Calls-->
+    <string name="phone_call_logs">Call Logs</string>
+
     <!--Edit call history screen-->
     <string name="edit_call_history_title">Edit Call History</string>
 </resources>

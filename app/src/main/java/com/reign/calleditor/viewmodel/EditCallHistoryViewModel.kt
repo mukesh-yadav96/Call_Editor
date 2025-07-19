@@ -32,10 +32,20 @@ class CallLogViewModel(application: Application) : AndroidViewModel(application)
     var errorOccurred by mutableStateOf<String?>(null)
         private set
 
+    private var currentEntrySelected: CallLogEntry? = null
+
     init {
         if (hasReadCallLogPermission) {
             fetchCallLogs()
         }
+    }
+
+    fun setCurrentEntrySelected(entry: CallLogEntry?) {
+        currentEntrySelected = entry
+    }
+
+    fun getCurrentlySelectedEntry(): CallLogEntry? {
+        return currentEntrySelected
     }
 
     private fun checkInitialPermission(permission: String): Boolean {

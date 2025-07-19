@@ -31,8 +31,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.reign.calleditor.R
 import com.reign.calleditor.model.CallLogEntry
 import com.reign.calleditor.ui.theme.CallEditorTheme
@@ -45,10 +45,10 @@ import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditCallHistoryScreen(
-    navController: NavHostController,
+fun PhoneCallHistoryScreen(
     modifier: Modifier = Modifier,
-    callLogViewModel: CallLogViewModel = viewModel()
+    navController: NavHostController,
+    callLogViewModel: CallLogViewModel
 ) {
     val context = LocalContext.current
 
@@ -57,6 +57,7 @@ fun EditCallHistoryScreen(
     val callLogs = callLogViewModel.callLogEntries
     val isLoading = callLogViewModel.isLoading
     val errorMessage = callLogViewModel.errorOccurred
+    val setCurrentEntry = callLogViewModel::setCurrentEntrySelected
 
     val permissionsToRequest = remember {
         arrayOf(
@@ -86,7 +87,7 @@ fun EditCallHistoryScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.edit_call_history_title)) },
+                title = { Text(stringResource(R.string.phone_call_logs)) },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -130,7 +131,7 @@ fun EditCallHistoryScreen(
                     )
                 }
                 else -> {
-                    CallLogList(logs = callLogs)
+                    CallLogList(navController = navController, logs = callLogs, setCurrentEntry = setCurrentEntry)
                 }
             }
         }
@@ -138,14 +139,19 @@ fun EditCallHistoryScreen(
 }
 
 @Composable
-fun CallLogList(logs: List<CallLogEntry>, modifier: Modifier = Modifier) {
+fun CallLogList(navController: NavHostController, logs: List<CallLogEntry>, setCurrentEntry: (CallLogEntry?) -> Unit) {
     LazyColumn(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize(),
         contentPadding = PaddingValues(vertical = 4.dp)
     ) {
         items(logs, key = { log -> log.id }) { log ->
-            CallLogItemView(log = log, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
+            CallLogItemView(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                navController = navController,
+                log = log,
+                setCurrentEntry = setCurrentEntry
+            )
         }
     }
 }
@@ -154,11 +160,37 @@ fun CallLogList(logs: List<CallLogEntry>, modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 fun EditCallHistoryScreenWithLogsPreview() {
+    val navController = rememberNavController()
     CallEditorTheme {
-        CallLogList(logs = listOf(
-            CallLogEntry("1", "123-456-7890", Date().time - 100000, CallLog.Calls.INCOMING_TYPE, 60, "John Doe"),
-            CallLogEntry("2", "987-654-3210", Date().time - 200000, CallLog.Calls.OUTGOING_TYPE, 120, "Jane Smith"),
-            CallLogEntry("3", "555-555-5555", Date().time - 300000, CallLog.Calls.MISSED_TYPE, 0, null)
-        ))
+        CallLogList(
+            navController = navController,
+            logs = listOf(
+                CallLogEntry(
+                    "1",
+                    "123-456-7890",
+                    Date().time - 100000,
+                    CallLog.Calls.INCOMING_TYPE,
+                    60,
+                    "John Doe"
+                ),
+                CallLogEntry(
+                    "2",
+                    "987-654-3210",
+                    Date().time - 200000,
+                    CallLog.Calls.OUTGOING_TYPE,
+                    120,
+                    "Jane Smith"
+                ),
+                CallLogEntry(
+                    "3",
+                    "555-555-5555",
+                    Date().time - 300000,
+                    CallLog.Calls.MISSED_TYPE,
+                    0,
+                    null
+                )
+            ),
+            setCurrentEntry = {}
+        )
     }
 }

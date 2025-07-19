@@ -26,20 +26,31 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.reign.calleditor.model.CallLogEntry
+import com.reign.calleditor.routes.NavigationItem
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 @Composable
-fun CallLogItemView(log: CallLogEntry, modifier: Modifier = Modifier) {
-    val dateFormat = remember { SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault()) } // Shortened format
+fun CallLogItemView(
+    modifier: Modifier = Modifier,
+    navController: NavHostController,
+    log: CallLogEntry,
+    setCurrentEntry: (CallLogEntry?) -> Unit
+) {
+    val dateFormat = remember { SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault()) }
 
     val (icon, iconColor) = getCallTypeVisuals(log.type)
     Card(
         modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        onClick = { /* TODO: Handle item click, e.g., navigate to details or show options */ }
+        onClick = {
+            setCurrentEntry(log)
+            navController.navigate(route = NavigationItem.EditCallHistory.baseRoute)
+        }
     ) {
         ListItem(
             headlineContent = {
@@ -136,7 +147,9 @@ fun callLogTypeToString(type: Int): String {
 @Preview(showBackground = true)
 @Composable
 fun CallLogItemViewPreview() {
+    val navController= rememberNavController()
     CallLogItemView(
+        navController = navController,
         log = CallLogEntry(
             "1",
             "123-456-7890",
@@ -144,7 +157,8 @@ fun CallLogItemViewPreview() {
             CallLog.Calls.INCOMING_TYPE,
             76,
             "John Doe"
-        )
+        ),
+        setCurrentEntry = { }
     )
 }
 
