@@ -2,7 +2,6 @@ package com.reign.calleditor.ui.screens
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Application
 import android.provider.CallLog
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -34,7 +33,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.reign.calleditor.R
 import com.reign.calleditor.model.CallLogEntry
 import com.reign.calleditor.ui.theme.CallEditorTheme
