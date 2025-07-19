@@ -48,7 +48,7 @@ import java.util.Date
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditCallHistoryScreen(
-    navController: NavHostController, // Renamed for clarity, pass if used for navigation
+    navController: NavHostController,
     modifier: Modifier = Modifier,
     callLogViewModel: CallLogViewModel = viewModel()
 ) {
@@ -144,32 +144,11 @@ fun CallLogList(logs: List<CallLogEntry>, modifier: Modifier = Modifier) {
     LazyColumn(
         modifier = modifier
             .fillMaxSize(),
-        contentPadding = PaddingValues(vertical = 4.dp) // Add some padding around the list
+        contentPadding = PaddingValues(vertical = 4.dp)
     ) {
         items(logs, key = { log -> log.id }) { log ->
             CallLogItemView(log = log, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
-            // Divider() // Optional: if you prefer explicit dividers
         }
-    }
-}
-
-/*@Composable
-fun CallLogList(logs: List<CallLogEntry>, modifier: Modifier = Modifier) {
-    LazyColumn(modifier = modifier.fillMaxSize()) {
-        items(logs, key = { log -> log.id }) { log ->
-            CallLogItemView(log = log)
-            HorizontalDivider()
-        }
-    }
-}*/
-
-@SuppressLint("ViewModelConstructorInComposable")
-@Preview(showBackground = true)
-@Composable
-fun EditCallHistoryScreenPermissionNotGrantedPreview() {
-    CallEditorTheme {
-        val mockViewModel = CallLogViewModel(Application()) // Requires Application instance
-        EditCallHistoryScreen(navController = rememberNavController(), callLogViewModel = mockViewModel)
     }
 }
 
@@ -183,22 +162,5 @@ fun EditCallHistoryScreenWithLogsPreview() {
             CallLogEntry("2", "987-654-3210", Date().time - 200000, CallLog.Calls.OUTGOING_TYPE, 120, "Jane Smith"),
             CallLogEntry("3", "555-555-5555", Date().time - 300000, CallLog.Calls.MISSED_TYPE, 0, null)
         ))
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun CallLogItemViewPreview() {
-    CallEditorTheme {
-        CallLogItemView(
-            log = CallLogEntry(
-                id = "1",
-                number = "123-456-7890",
-                date = System.currentTimeMillis() - (2 * 60 * 60 * 1000), // 2 hours ago
-                type = CallLog.Calls.INCOMING_TYPE,
-                duration = 75,
-                name = "John Doe"
-            )
-        )
     }
 }

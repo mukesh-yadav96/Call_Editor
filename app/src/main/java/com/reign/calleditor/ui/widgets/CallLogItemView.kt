@@ -44,7 +44,7 @@ fun CallLogItemView(log: CallLogEntry, modifier: Modifier = Modifier) {
         ListItem(
             headlineContent = {
                 Text(
-                    text = log.name ?: log.number ?: "Unknown",
+                    text = log.name?.takeIf { it.isNotEmpty() } ?: "Unknown",
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -52,7 +52,7 @@ fun CallLogItemView(log: CallLogEntry, modifier: Modifier = Modifier) {
             },
             supportingContent = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (log.name != null && log.number != null) {
+                    if (log.number != null) {
                         Text(
                             text = "${log.number} • ",
                             style = MaterialTheme.typography.bodyMedium,
@@ -91,7 +91,7 @@ fun CallLogItemView(log: CallLogEntry, modifier: Modifier = Modifier) {
                 }
             },
             colors = ListItemDefaults.colors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant // Or surface
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
             )
         )
     }
