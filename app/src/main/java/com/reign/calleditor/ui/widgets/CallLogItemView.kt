@@ -4,15 +4,26 @@ import android.provider.CallLog
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.CallMade
+import androidx.compose.material.icons.automirrored.filled.CallMissed
+import androidx.compose.material.icons.automirrored.filled.CallReceived
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.reign.calleditor.model.CallLogEntry
@@ -21,69 +32,80 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun CallLogItemView(
-    modifier: Modifier = Modifier,
-    log: CallLogEntry
-) {
-    val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.getDefault()) }
+fun CallLogItemView(log: CallLogEntry, modifier: Modifier = Modifier) {
+    val dateFormat = remember { SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault()) } // Shortened format
 
+    val (icon, iconColor) = getCallTypeVisuals(log.type)
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp, horizontal = 0.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        modifier = modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        onClick = { /* TODO: Handle item click, e.g., navigate to details or show options */ }
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // TODO: Add an icon based on call type (incoming, outgoing, missed)
-            // Example:
-            // Icon(imageVector = when(log.type) { ... }, contentDescription = null)
-            // Spacer(modifier = Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
+        ListItem(
+            headlineContent = {
                 Text(
-                    text = log.name ?: log.number ?: "Unknown Number",
-                    style = MaterialTheme.typography.titleMedium
+                    text = log.name ?: log.number ?: "Unknown",
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
-                if (log.name != null && log.number != null) { // Show number if name is present
+            },
+            supportingContent = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (log.name != null && log.number != null) {
+                        Text(
+                            text = "${log.number} • ",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                     Text(
-                        text = log.number,
+                        text = formatDuration(log.duration),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                Text(
-                    text = "Duration: ${formatDuration(log.duration)}",
-                    style = MaterialTheme.typography.bodySmall
+            },
+            leadingContent = {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = callLogTypeToString(log.type),
+                    tint = iconColor,
+                    modifier = Modifier.size(32.dp)
                 )
-            }
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = callLogTypeToString(log.type),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = getCallTypeColor(log.type)
-                )
-                Text(
-                    text = dateFormat.format(Date(log.date)),
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-        }
+            },
+            trailingContent = {
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = callLogTypeToString(log.type),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = iconColor
+                    )
+                    Text(
+                        text = dateFormat.format(Date(log.date)),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            colors = ListItemDefaults.colors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant // Or surface
+            )
+        )
     }
 }
 
 @Composable
-fun getCallTypeColor(type: Int): androidx.compose.ui.graphics.Color {
+fun getCallTypeVisuals(type: Int): Pair<ImageVector, Color> {
     return when (type) {
-        CallLog.Calls.INCOMING_TYPE -> MaterialTheme.colorScheme.primary
-        CallLog.Calls.OUTGOING_TYPE -> MaterialTheme.colorScheme.secondary
-        CallLog.Calls.MISSED_TYPE -> MaterialTheme.colorScheme.error
-        CallLog.Calls.REJECTED_TYPE -> MaterialTheme.colorScheme.errorContainer
-        else -> MaterialTheme.colorScheme.onSurface
+        CallLog.Calls.INCOMING_TYPE -> Icons.AutoMirrored.Filled.CallReceived to MaterialTheme.colorScheme.primary
+        CallLog.Calls.OUTGOING_TYPE -> Icons.AutoMirrored.Filled.CallMade to MaterialTheme.colorScheme.secondary
+        CallLog.Calls.MISSED_TYPE -> Icons.AutoMirrored.Filled.CallMissed to MaterialTheme.colorScheme.error
+        CallLog.Calls.REJECTED_TYPE -> Icons.AutoMirrored.Filled.CallMissed to MaterialTheme.colorScheme.onErrorContainer // Or a specific rejected icon
+        // Add other types as needed
+        else -> Icons.AutoMirrored.Filled.CallReceived to MaterialTheme.colorScheme.onSurfaceVariant // Default
     }
 }
 
@@ -120,7 +142,7 @@ fun CallLogItemViewPreview() {
             "123-456-7890",
             Date().time - 100000,
             CallLog.Calls.INCOMING_TYPE,
-            60,
+            76,
             "John Doe"
         )
     )
