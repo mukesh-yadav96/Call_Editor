@@ -1,4 +1,4 @@
-package com.reign.calleditor.viewmodel // Or your ViewModel package
+package com.reign.calleditor.viewmodel
 
 import android.Manifest
 import android.app.Application
