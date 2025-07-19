@@ -103,7 +103,7 @@ fun EditCallHistoryScreen(
         },
         modifier = modifier
     ) { innerPadding ->
-        Box( // Use Box to easily center content or overlay loading indicators
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
