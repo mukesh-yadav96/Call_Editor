@@ -55,6 +55,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.compose.material.iconsCore)
     implementation(libs.androidx.compose.material.iconsExtended)
+    implementation(libs.compose.material.dialogs.core)
+    implementation(libs.compose.material.dialogs.datetime)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

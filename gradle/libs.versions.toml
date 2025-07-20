@@ -11,6 +11,7 @@ composeBom = "2024.09.00"
 navigationCompose = "2.7.7"
 kotlinxCoroutines = "1.7.3"
 composeMaterialIcons = "1.7.8"
+composeMaterialDialogs = "0.9.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -32,6 +33,8 @@ kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 androidx-compose-material-iconsCore = { group = "androidx.compose.material", name = "material-icons-core", version.ref = "composeMaterialIcons" }
 androidx-compose-material-iconsExtended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "composeMaterialIcons" }
+compose-material-dialogs-core = { module = "io.github.vanpra.compose-material-dialogs:core", version.ref = "composeMaterialDialogs" }
+compose-material-dialogs-datetime = { module = "io.github.vanpra.compose-material-dialogs:datetime", version.ref = "composeMaterialDialogs" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
