@@ -2,7 +2,6 @@ package com.reign.calleditor.viewmodel
 
 import android.Manifest
 import android.app.Application
-import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
