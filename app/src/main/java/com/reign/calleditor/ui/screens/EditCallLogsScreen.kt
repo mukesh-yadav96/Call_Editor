@@ -1,6 +1,10 @@
 package com.reign.calleditor.ui.screens
 
+import android.os.Build
 import android.provider.CallLog
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -28,6 +34,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -38,10 +45,18 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.reign.calleditor.viewmodel.CallLogViewModel
+import com.vanpra.composematerialdialogs.MaterialDialog
+import com.vanpra.composematerialdialogs.datetime.date.datepicker
+import com.vanpra.composematerialdialogs.datetime.time.timepicker
+import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditCallLogsScreen(
@@ -53,19 +68,26 @@ fun EditCallLogsScreen(
     val currentEntry = viewModel.getCurrentlySelectedEntry()
     val isLoading = viewModel.isLoading
 
-    // Editable states
     var nameState by remember { mutableStateOf("") }
     var numberState by remember { mutableStateOf("") }
     var dateState by remember { mutableStateOf("") }
     var timeState by remember { mutableStateOf("") }
     var duration by remember { mutableStateOf("") }
-    var selectedType by remember { mutableStateOf(currentEntry?.type ?: CallLog.Calls.INCOMING_TYPE) }
+    var selectedType by remember { mutableIntStateOf(currentEntry?.type ?: CallLog.Calls.INCOMING_TYPE) }
+
+    val dateDialogState = rememberMaterialDialogState()
+    val timeDialogState = rememberMaterialDialogState()
+
+    val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a")
 
     val callTypes = listOf(
         CallLog.Calls.INCOMING_TYPE to "Incoming",
         CallLog.Calls.OUTGOING_TYPE to "Outgoing",
         CallLog.Calls.MISSED_TYPE to "Missed"
     )
+
+    val dateInteractionSource = remember { MutableInteractionSource() }
 
     // Load data from ViewModel once
     LaunchedEffect(currentEntry) {
@@ -87,7 +109,7 @@ fun EditCallLogsScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text("Edit Call Log - ${nameState.ifBlank { "Unknown" }}")
+                    Text("Edit Call Log")
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -120,7 +142,7 @@ fun EditCallLogsScreen(
                     .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("Call Type", style = MaterialTheme.typography.titleMedium)
+                Text("Call Type", style = MaterialTheme.typography.titleLarge)
                 callTypes.forEach { (value, label) ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         RadioButton(
@@ -154,17 +176,45 @@ fun EditCallLogsScreen(
 
                 OutlinedTextField(
                     value = dateState,
-                    onValueChange = { dateState = it },
-                    label = { Text("Date (MM/dd/yyyy)") },
-                    modifier = Modifier.fillMaxWidth()
+                    onValueChange = {  },
+                    readOnly = true,
+                    label = { Text("Date (dd/MM/yyyy)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    interactionSource = dateInteractionSource,
+                    trailingIcon = {
+                        Icon(Icons.Filled.DateRange, "Select Date")
+                    }
                 )
+
+                LaunchedEffect(dateInteractionSource) {
+                    dateInteractionSource.interactions.collect { interaction ->
+                        if (interaction is PressInteraction.Release) {
+                            dateDialogState.show()
+                        }
+                    }
+                }
+
+                val timeInteractionSource = remember { MutableInteractionSource() }
 
                 OutlinedTextField(
                     value = timeState,
-                    onValueChange = { timeState = it },
+                    onValueChange = {  },
+                    readOnly = true,
                     label = { Text("Time (hh:mm a)") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    interactionSource = timeInteractionSource,
+                    trailingIcon = {
+                        Icon(Icons.Filled.AccessTime, "Select Time")
+                    }
                 )
+
+                LaunchedEffect(timeInteractionSource) {
+                    timeInteractionSource.interactions.collect { interaction ->
+                        if (interaction is PressInteraction.Release) {
+                            timeDialogState.show()
+                        }
+                    }
+                }
 
                 OutlinedTextField(
                     value = duration,
@@ -173,7 +223,7 @@ fun EditCallLogsScreen(
                             duration = it
                         }
                     },
-                    label = { Text("Duration (sec)") },
+                    label = { Text("Duration (HH:mm:ss)") },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = selectedType != CallLog.Calls.MISSED_TYPE,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
@@ -183,7 +233,6 @@ fun EditCallLogsScreen(
 
                 Button(
                     onClick = {
-                        println("Done: Name=$nameState, Number=$numberState, Date=$dateState, Time=$timeState")
                         viewModel.updateCallLog(
                             id = currentEntry?.id ?: return@Button,
                             name = nameState,
@@ -202,6 +251,26 @@ fun EditCallLogsScreen(
                     Text("Done")
                 }
             }
+        }
+    }
+
+    MaterialDialog(
+        dialogState = dateDialogState,
+        buttons = {
+        positiveButton("OK")
+        negativeButton("Cancel")
+    }) {
+        datepicker(initialDate = LocalDate.now()) { selectedDate ->
+            dateState = selectedDate.format(dateFormatter)
+        }
+    }
+
+    MaterialDialog(dialogState = timeDialogState, buttons = {
+        positiveButton("OK")
+        negativeButton("Cancel")
+    }) {
+        timepicker(initialTime = LocalTime.now(), is24HourClock = false) { selectedTime ->
+            timeState = selectedTime.format(timeFormatter)
         }
     }
 }
