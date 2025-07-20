@@ -48,16 +48,16 @@ import java.util.Date
 fun PhoneCallHistoryScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController,
-    callLogViewModel: CallLogViewModel
+    viewModel: CallLogViewModel
 ) {
     val context = LocalContext.current
 
-    val hasReadPermission = callLogViewModel.hasReadCallLogPermission
-    val hasWritePermission = callLogViewModel.hasWriteCallLogPermission
-    val callLogs = callLogViewModel.callLogEntries
-    val isLoading = callLogViewModel.isLoading
-    val errorMessage = callLogViewModel.errorOccurred
-    val setCurrentEntry = callLogViewModel::setCurrentEntrySelected
+    val hasReadPermission = viewModel.hasReadCallLogPermission
+    val hasWritePermission = viewModel.hasWriteCallLogPermission
+    val callLogs = viewModel.callLogEntries
+    val isLoading = viewModel.isLoading
+    val errorMessage = viewModel.errorOccurred
+    val setCurrentEntry = viewModel::setCurrentEntrySelected
 
     val permissionsToRequest = remember {
         arrayOf(
@@ -70,8 +70,8 @@ fun PhoneCallHistoryScreen(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
         onResult = { permissionsResult ->
             val readGranted = permissionsResult[Manifest.permission.READ_CALL_LOG] ?: hasReadPermission
-            val writeGranted = permissionsResult[Manifest.permission.WRITE_CALL_LOG] ?: callLogViewModel.hasWriteCallLogPermission // Use current value if not in map
-            callLogViewModel.updatePermissionStatus(readGranted, writeGranted)
+            val writeGranted = permissionsResult[Manifest.permission.WRITE_CALL_LOG] ?: viewModel.hasWriteCallLogPermission // Use current value if not in map
+            viewModel.updatePermissionStatus(readGranted, writeGranted)
         }
     )
 
@@ -85,6 +85,7 @@ fun PhoneCallHistoryScreen(
     }
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(stringResource(R.string.phone_call_logs)) },
@@ -101,8 +102,7 @@ fun PhoneCallHistoryScreen(
                     }
                 }
             )
-        },
-        modifier = modifier
+        }
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -121,13 +121,13 @@ fun PhoneCallHistoryScreen(
                 errorMessage != null -> {
                     ErrorState(
                         message = errorMessage ?: "An unknown error occurred.",
-                        onRetry = { callLogViewModel.fetchCallLogs() }
+                        onRetry = { viewModel.fetchCallLogs() }
                     )
                 }
                 callLogs.isEmpty() -> {
                     EmptyState(
                         message = "No call logs found.",
-                        onRefresh = { callLogViewModel.fetchCallLogs() }
+                        onRefresh = { viewModel.fetchCallLogs() }
                     )
                 }
                 else -> {

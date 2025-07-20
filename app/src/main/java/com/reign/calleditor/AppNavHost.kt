@@ -28,7 +28,7 @@ fun AppNavHost(
         ) {
             PhoneCallHistoryScreen(
                 navController = navController,
-                callLogViewModel = callLogViewModel
+                viewModel = callLogViewModel
             )
         }
 

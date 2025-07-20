@@ -2,6 +2,8 @@ package com.reign.calleditor.viewmodel
 
 import android.Manifest
 import android.app.Application
+import android.content.ContentUris
+import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
 import android.provider.CallLog
@@ -17,6 +19,8 @@ import com.reign.calleditor.model.CallLogEntry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class CallLogViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -68,7 +72,7 @@ class CallLogViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun fetchCallLogs() {
+    fun fetchCallLogs(callback: (() -> Unit)? = null) {
         if (!hasReadCallLogPermission) {
             Log.w("CallLogViewModel", "Read Call Log permission not granted. Cannot fetch logs.")
             errorOccurred = "Read Call Log permission is required to display call history."
@@ -93,6 +97,7 @@ class CallLogViewModel(application: Application) : AndroidViewModel(application)
                 callLogEntries = emptyList()
             } finally {
                 isLoading = false
+                callback?.invoke()
             }
         }
     }
@@ -152,5 +157,51 @@ class CallLogViewModel(application: Application) : AndroidViewModel(application)
         }
         Log.d("CallLogViewModel", "Fetched ${logs.size} call log entries from provider.")
         return@withContext logs
+    }
+
+    fun updateCallLog(
+        id: String,
+        name: String,
+        number: String,
+        dateString: String,
+        timeString: String,
+        duration: Long,
+        type: Int,
+        callback: (() -> Unit)? = null
+    ) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                try {
+                    val context = getApplication<Application>().applicationContext
+                    val contentResolver = context.contentResolver
+
+                    val formatter = SimpleDateFormat("dd/MM/yyyy hh:mm a", Locale.getDefault())
+                    val combinedDateTime = formatter.parse("$dateString $timeString")
+                        ?: throw IllegalArgumentException("Invalid date/time format.")
+
+                    val timestamp = combinedDateTime.time
+
+                    val values = ContentValues().apply {
+                        put(CallLog.Calls.NUMBER, number)
+                        put(CallLog.Calls.DATE, timestamp)
+                        put(CallLog.Calls.DURATION, duration)
+                        put(CallLog.Calls.NEW, 1)
+                        put(CallLog.Calls.TYPE, type)
+                        put(CallLog.Calls.CACHED_NAME, name)
+                    }
+
+                    val uri = CallLog.Calls.CONTENT_URI
+                    contentResolver.insert(uri, values)
+
+                    Log.d("CallLogViewModel", "Updated $values rows in call log.")
+                } catch (e: Exception) {
+                    Log.e("CallLogViewModel", "Failed to update call log", e)
+                } finally {
+                    fetchCallLogs {
+                        callback?.invoke()
+                    }
+                }
+            }
+        }
     }
 }
