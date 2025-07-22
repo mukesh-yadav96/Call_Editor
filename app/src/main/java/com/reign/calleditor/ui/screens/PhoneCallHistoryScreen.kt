@@ -24,6 +24,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,11 +54,11 @@ fun PhoneCallHistoryScreen(
 ) {
     val context = LocalContext.current
 
-    val hasReadPermission = viewModel.hasReadCallLogPermission
-    val hasWritePermission = viewModel.hasWriteCallLogPermission
-    val callLogs = viewModel.callLogEntries
-    val isLoading = viewModel.isLoading
-    val errorMessage = viewModel.errorOccurred
+    val hasReadPermission by remember { derivedStateOf { viewModel.hasReadCallLogPermission } }
+    val hasWritePermission by remember { derivedStateOf { viewModel.hasWriteCallLogPermission } }
+    val callLogs by remember { derivedStateOf { viewModel.callLogEntries } }
+    val isLoading by remember { derivedStateOf { viewModel.isLoading } }
+    val errorMessage by remember { derivedStateOf { viewModel.errorOccurred } }
     val setCurrentEntry = viewModel::setCurrentEntrySelected
 
     val permissionsToRequest = remember {
@@ -66,22 +68,18 @@ fun PhoneCallHistoryScreen(
         )
     }
 
-    val multiplePermissionsLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions(),
-        onResult = { permissionsResult ->
-            val readGranted = permissionsResult[Manifest.permission.READ_CALL_LOG] ?: hasReadPermission
-            val writeGranted = permissionsResult[Manifest.permission.WRITE_CALL_LOG] ?: viewModel.hasWriteCallLogPermission // Use current value if not in map
-            viewModel.updatePermissionStatus(readGranted, writeGranted)
-        }
-    )
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val readGranted = permissions[Manifest.permission.READ_CALL_LOG] ?: hasReadPermission
+        val writeGranted = permissions[Manifest.permission.WRITE_CALL_LOG] ?: hasWritePermission
+        viewModel.updatePermissionStatus(readGranted, writeGranted)
+    }
 
-    LaunchedEffect(key1 = hasReadPermission) {
-        if (!hasReadPermission) {
-            // Consider showing a rationale before launching if it's not the first time.
-            // For now, launch directly if permission is not granted.
-            multiplePermissionsLauncher.launch(permissionsToRequest)
+    LaunchedEffect(hasReadPermission, hasWritePermission) {
+        if (!hasReadPermission || !hasWritePermission) {
+            permissionLauncher.launch(permissionsToRequest)
         }
-        // No need to explicitly call fetchCallLogs here if ViewModel's init or updatePermissionStatus handles it.
     }
 
     Scaffold(
@@ -91,10 +89,10 @@ fun PhoneCallHistoryScreen(
                 title = { Text(stringResource(R.string.phone_call_logs)) },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ),
                 actions = {
-                    IconButton(onClick = { /* TODO: Handle settings navigation or action */ }) {
+                    IconButton(onClick = { /* TODO: Navigate to settings */ }) {
                         Icon(
                             imageVector = Icons.Outlined.Settings,
                             contentDescription = "Settings"
@@ -110,33 +108,42 @@ fun PhoneCallHistoryScreen(
                 .padding(innerPadding)
         ) {
             when {
-                !hasReadPermission && !isLoading -> { // Show permission request UI only if not loading initial check
+                !hasReadPermission -> {
                     PermissionRationale(
-                        onRequestPermission = { multiplePermissionsLauncher.launch(permissionsToRequest) }
+                        onRequestPermission = { permissionLauncher.launch(permissionsToRequest) }
                     )
                 }
+
                 isLoading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    CircularProgressIndicator(Modifier.align(Alignment.Center))
                 }
+
                 errorMessage != null -> {
                     ErrorState(
                         message = errorMessage ?: "An unknown error occurred.",
                         onRetry = { viewModel.fetchCallLogs() }
                     )
                 }
+
                 callLogs.isEmpty() -> {
                     EmptyState(
                         message = "No call logs found.",
                         onRefresh = { viewModel.fetchCallLogs() }
                     )
                 }
+
                 else -> {
-                    CallLogList(navController = navController, logs = callLogs, setCurrentEntry = setCurrentEntry)
+                    CallLogList(
+                        navController = navController,
+                        logs = callLogs,
+                        setCurrentEntry = setCurrentEntry
+                    )
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun CallLogList(navController: NavHostController, logs: List<CallLogEntry>, setCurrentEntry: (CallLogEntry?) -> Unit) {
