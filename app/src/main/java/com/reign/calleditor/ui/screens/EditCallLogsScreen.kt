@@ -51,6 +51,15 @@ fun EditCallLogsScreen(
                 EditCallLogForm(
                     state = uiState,
                     onSubmit = {
+                        val requiredFieldsFilled = listOf(
+                            uiState.number,
+                            uiState.date,
+                            uiState.time
+                        ).all { it.isNotBlank() } && uiState.isDurationValid
+
+                        if (!requiredFieldsFilled) return@EditCallLogForm
+
+
                         if (currentEntry == null) {
                             viewModel.addCallLog(
                                 name = uiState.name,

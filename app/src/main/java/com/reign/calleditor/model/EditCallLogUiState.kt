@@ -9,7 +9,7 @@ class EditCallLogUiState(
     number: String,
     date: String,
     time: String,
-    durationText: String,
+    durationText: String = 0.toString(),
     callType: Int
 ) {
     var name by mutableStateOf(name)

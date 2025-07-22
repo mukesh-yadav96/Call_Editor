@@ -2,6 +2,7 @@ package com.reign.calleditor.viewmodel
 
 import android.Manifest
 import android.app.Application
+import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
@@ -191,7 +192,7 @@ class CallLogViewModel(application: Application) : AndroidViewModel(application)
                     val uri = CallLog.Calls.CONTENT_URI
                     contentResolver.insert(uri, values)
 
-                    Log.d("CallLogViewModel", "Updated $values rows in call log.")
+                    Log.d("CallLogViewModel", "Added $values rows in call log.")
                 } catch (e: Exception) {
                     Log.e("CallLogViewModel", "Failed to update call log", e)
                 } finally {
@@ -234,10 +235,10 @@ class CallLogViewModel(application: Application) : AndroidViewModel(application)
                         put(CallLog.Calls.CACHED_NAME, name)
                     }
 
-                    val uri = CallLog.Calls.CONTENT_URI
-                    contentResolver.insert(uri, values)
+                    val uri = ContentUris.withAppendedId(CallLog.Calls.CONTENT_URI, id.toLong())
+                    val rowsUpdated = contentResolver.update(uri, values, null, null)
 
-                    Log.d("CallLogViewModel", "Updated $values rows in call log.")
+                    Log.d("CallLogViewModel", "Updated $rowsUpdated rows in call log.")
                 } catch (e: Exception) {
                     Log.e("CallLogViewModel", "Failed to update call log", e)
                 } finally {
