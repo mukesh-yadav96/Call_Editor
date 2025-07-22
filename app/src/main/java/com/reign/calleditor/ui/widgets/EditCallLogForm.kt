@@ -47,7 +47,10 @@ fun EditCallLogForm(
         TimeField(state, timeDialogState)
         DurationField(state)
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onSubmit, modifier = Modifier.fillMaxWidth()) {
+        Button(
+            onClick = { onSubmit() },
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text("Done")
         }
     }

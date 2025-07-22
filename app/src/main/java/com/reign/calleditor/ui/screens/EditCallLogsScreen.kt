@@ -32,7 +32,12 @@ fun EditCallLogsScreen(
 
     Scaffold(
         modifier = modifier,
-        topBar = { EditCallLogTopBar { navController.popBackStack() } }
+        topBar = {
+            EditCallLogTopBar(currentEntry?.id) {
+                viewModel.setCurrentEntrySelected(null)
+                navController.popBackStack()
+            }
+        }
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -46,16 +51,29 @@ fun EditCallLogsScreen(
                 EditCallLogForm(
                     state = uiState,
                     onSubmit = {
-                        viewModel.updateCallLog(
-                            id = currentEntry?.id ?: return@EditCallLogForm,
-                            name = uiState.name,
-                            number = uiState.number,
-                            dateString = uiState.date,
-                            timeString = uiState.time,
-                            duration = uiState.durationInSeconds,
-                            type = uiState.callType,
-                            callback = { navController.popBackStack() }
-                        )
+                        if (currentEntry == null) {
+                            viewModel.addCallLog(
+                                name = uiState.name,
+                                number = uiState.number,
+                                dateString = uiState.date,
+                                timeString = uiState.time,
+                                duration = uiState.durationInSeconds,
+                                type = uiState.callType,
+                                callback = { navController.popBackStack() }
+                            )
+                        } else {
+                            viewModel.updateCallLog(
+                                id = currentEntry.id,
+                                name = uiState.name,
+                                number = uiState.number,
+                                dateString = uiState.date,
+                                timeString = uiState.time,
+                                duration = uiState.durationInSeconds,
+                                type = uiState.callType,
+                                callback = { navController.popBackStack() }
+                            )
+                        }
+                        viewModel.setCurrentEntrySelected(null)
                     }
                 )
             }

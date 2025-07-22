@@ -38,6 +38,7 @@ import androidx.navigation.compose.rememberNavController
 import com.reign.calleditor.R
 import com.reign.calleditor.model.CallLogEntry
 import com.reign.calleditor.ui.theme.CallEditorTheme
+import com.reign.calleditor.ui.util.AddCallLogFAB
 import com.reign.calleditor.ui.widgets.CallLogItemView
 import com.reign.calleditor.ui.widgets.EmptyState
 import com.reign.calleditor.ui.widgets.ErrorState
@@ -100,6 +101,9 @@ fun PhoneCallHistoryScreen(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            AddCallLogFAB(navController = navController)
         }
     ) { innerPadding ->
         Box(

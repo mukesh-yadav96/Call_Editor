@@ -158,6 +158,51 @@ class CallLogViewModel(application: Application) : AndroidViewModel(application)
         return@withContext logs
     }
 
+    fun addCallLog(
+        name: String,
+        number: String,
+        dateString: String,
+        timeString: String,
+        duration: Long,
+        type: Int,
+        callback: (() -> Unit)? = null
+    ) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                try {
+                    val context = getApplication<Application>().applicationContext
+                    val contentResolver = context.contentResolver
+
+                    val formatter = SimpleDateFormat("dd/MM/yyyy hh:mm a", Locale.getDefault())
+                    val combinedDateTime = formatter.parse("$dateString $timeString")
+                        ?: throw IllegalArgumentException("Invalid date/time format.")
+
+                    val timestamp = combinedDateTime.time
+
+                    val values = ContentValues().apply {
+                        put(CallLog.Calls.NUMBER, number)
+                        put(CallLog.Calls.DATE, timestamp)
+                        put(CallLog.Calls.DURATION, duration)
+                        put(CallLog.Calls.NEW, 1)
+                        put(CallLog.Calls.TYPE, type)
+                        put(CallLog.Calls.CACHED_NAME, name)
+                    }
+
+                    val uri = CallLog.Calls.CONTENT_URI
+                    contentResolver.insert(uri, values)
+
+                    Log.d("CallLogViewModel", "Updated $values rows in call log.")
+                } catch (e: Exception) {
+                    Log.e("CallLogViewModel", "Failed to update call log", e)
+                } finally {
+                    fetchCallLogs {
+                        callback?.invoke()
+                    }
+                }
+            }
+        }
+    }
+
     fun updateCallLog(
         id: String,
         name: String,

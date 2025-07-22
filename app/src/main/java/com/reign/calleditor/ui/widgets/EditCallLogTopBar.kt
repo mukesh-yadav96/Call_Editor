@@ -8,15 +8,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarDefaults.centerAlignedTopAppBarColors
 import androidx.compose.runtime.Composable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditCallLogTopBar(onBack: () -> Unit) {
+fun EditCallLogTopBar(callLogEntry: String?, onBack: () -> Unit) {
+    val title = if (callLogEntry == null) "Add Call Log" else "Edit Call Log"
     CenterAlignedTopAppBar(
-        title = { Text("Edit Call Log") },
+        title = { Text(title) },
         colors = centerAlignedTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
